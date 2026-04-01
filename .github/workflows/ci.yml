@@ -1,0 +1,144 @@
+﻿name: "CI"
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+      - "vite.config.ts"
+      - "eslint.config.js"
+      - "index.html"
+      - "GitHub/WorkFlows/ci.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig*.json"
+      - "vite.config.ts"
+      - "eslint.config.js"
+      - "index.html"
+      - "GitHub/WorkFlows/ci.yml"
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.result.outputs.status }}
+      errors: ${{ steps.result.outputs.errors }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint + Test + Build
+        id: result
+        shell: bash
+        run: |
+          ERRORS=""
+          STATUS="success"
+
+          echo "Verificando ESLint..."
+          if ! LINT_OUTPUT=$(npm run lint 2>&1); then
+            ERRORS+="### ESLint\n\`\`\`\n$LINT_OUTPUT\n\`\`\`\n\n"
+            STATUS="failure"
+          fi
+
+          echo "Executando testes..."
+          if ! TEST_OUTPUT=$(npm run test 2>&1); then
+            ERRORS+="### Testes\n\`\`\`\n$TEST_OUTPUT\n\`\`\`\n\n"
+            STATUS="failure"
+          fi
+
+          echo "Gerando build..."
+          if ! BUILD_OUTPUT=$(npm run build 2>&1); then
+            ERRORS+="### Build\n\`\`\`\n$BUILD_OUTPUT\n\`\`\`\n\n"
+            STATUS="failure"
+          fi
+
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+
+          DELIM=$(dd if=/dev/urandom bs=15 count=1 status=none | base64 | tr -dc 'a-zA-Z0-9')
+          echo "errors<<$DELIM" >> "$GITHUB_OUTPUT"
+          echo -e "$ERRORS" >> "$GITHUB_OUTPUT"
+          echo "$DELIM" >> "$GITHUB_OUTPUT"
+
+          if [ "$STATUS" = "failure" ]; then
+            echo "Frontend CI falhou"
+            exit 1
+          fi
+
+          echo "Frontend CI passou"
+
+  report:
+    name: Relatorio
+    runs-on: ubuntu-latest
+    needs: [frontend]
+    if: always() && github.event_name == 'pull_request'
+    steps:
+      - name: Gerar relatorio no PR
+        uses: actions/github-script@v7
+        env:
+          FRONTEND_STATUS: ${{ needs.frontend.outputs.status || needs.frontend.result }}
+          FRONTEND_ERRORS: ${{ toJSON(needs.frontend.outputs.errors || '') }}
+        with:
+          script: |
+            const frontendStatus = process.env.FRONTEND_STATUS || 'failure';
+            const frontendErrors = JSON.parse(process.env.FRONTEND_ERRORS || '""');
+
+            let body = '## CI Report\n\n';
+            body += '| Check | Status |\n';
+            body += '|-------|--------|\n';
+            body += `| Frontend (Lint + Test + Build) | ${frontendStatus === 'success' ? '✅' : '❌'} |\n\n`;
+
+            if (frontendErrors && frontendErrors.trim()) {
+              body += '### Erros\n\n' + frontendErrors + '\n';
+            }
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(
+              (comment) => comment.user.type === 'Bot' && comment.body.includes('CI Report'),
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
