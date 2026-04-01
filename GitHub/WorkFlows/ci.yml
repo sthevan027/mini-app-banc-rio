@@ -12,6 +12,7 @@ on:
       - "vite.config.ts"
       - "eslint.config.js"
       - "index.html"
+      - ".github/workflows/ci.yml"
       - "GitHub/WorkFlows/ci.yml"
   pull_request:
     branches: [main, develop]
@@ -24,6 +25,7 @@ on:
       - "vite.config.ts"
       - "eslint.config.js"
       - "index.html"
+      - ".github/workflows/ci.yml"
       - "GitHub/WorkFlows/ci.yml"
 
 permissions:
@@ -51,7 +53,12 @@ jobs:
           cache: npm
 
       - name: Instalar dependencias
-        run: npm ci
+        env:
+          NPM_CONFIG_FETCH_RETRIES: 1
+          NPM_CONFIG_FETCH_TIMEOUT: 20000
+          NPM_CONFIG_FETCH_RETRY_MINTIMEOUT: 2000
+          NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT: 10000
+        run: timeout 5m npm ci --no-audit --no-fund
 
       - name: Lint + Test + Build
         id: result

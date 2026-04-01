@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "build": "node scripts/run-tool.mjs tsc -b && node scripts/run-tool.mjs vite build",
+    "lint": "node scripts/run-tool.mjs eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "node scripts/run-tool.mjs vitest run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
