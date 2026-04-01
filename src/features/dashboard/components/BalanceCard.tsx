@@ -1,9 +1,9 @@
-﻿import { SectionCard } from '../../../components/SectionCard'
-import { formatCurrency } from '../../../utils/currency'
+﻿import { SectionCard } from "../../../components/SectionCard";
+import { formatCurrency } from "../../../utils/currency";
 
 type BalanceCardProps = {
-  balance: number
-}
+  balance: number;
+};
 
 export function BalanceCard({ balance }: BalanceCardProps) {
   return (
@@ -12,7 +12,7 @@ export function BalanceCard({ balance }: BalanceCardProps) {
       description="Atualizado a partir de uma API mockada com atraso artificial para simular rede."
       className="overflow-hidden"
     >
-      <div className="relative overflow-hidden rounded-[28px] border border-cyan-400/20 bg-gradient-to-br from-cyan-400/15 via-slate-900 to-orange-400/10 p-6">
+      <div className="relative overflow-hidden rounded-[28px] border border-cyan-400/20 bg-linear-to-br from-cyan-400/15 via-slate-900 to-orange-400/10 p-6">
         <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-cyan-300/20 blur-3xl" />
         <div className="absolute -bottom-10 left-8 h-28 w-28 rounded-full bg-orange-300/20 blur-3xl" />
 
@@ -30,5 +30,5 @@ export function BalanceCard({ balance }: BalanceCardProps) {
         </div>
       </div>
     </SectionCard>
-  )
+  );
 }
