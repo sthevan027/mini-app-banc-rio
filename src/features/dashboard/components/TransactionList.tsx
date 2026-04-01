@@ -1,10 +1,10 @@
-import { SectionCard } from "../../../components/SectionCard";
-import type { Transaction } from "../../../store/types";
-import { formatCurrency, formatDate } from "../../../utils/currency";
+﻿import { SectionCard } from '../../../components/SectionCard'
+import type { Transaction } from '../../../entities/account/types'
+import { formatCurrency, formatDate } from '../../../utils/currency'
 
 type TransactionListProps = {
-  transactions: Transaction[];
-};
+  transactions: Transaction[]
+}
 
 export function TransactionList({ transactions }: TransactionListProps) {
   return (
@@ -21,18 +21,18 @@ export function TransactionList({ transactions }: TransactionListProps) {
             <div>
               <p className="font-medium text-white">{transaction.title}</p>
               <p className="mt-1 text-sm text-slate-400">
-                {transaction.counterparty} • {formatDate(transaction.createdAt)}
+                {transaction.counterparty} · {formatDate(transaction.createdAt)}
               </p>
             </div>
             <div className="text-right">
               <p
                 className={
-                  transaction.type === "credit"
-                    ? "font-semibold text-emerald-300"
-                    : "font-semibold text-orange-200"
+                  transaction.type === 'credit'
+                    ? 'font-semibold text-emerald-300'
+                    : 'font-semibold text-orange-200'
                 }
               >
-                {transaction.type === "credit" ? "+" : "-"}
+                {transaction.type === 'credit' ? '+' : '-'}
                 {formatCurrency(transaction.amount)}
               </p>
               <p className="mt-1 text-xs uppercase tracking-[0.25em] text-slate-500">
@@ -43,5 +43,5 @@ export function TransactionList({ transactions }: TransactionListProps) {
         ))}
       </div>
     </SectionCard>
-  );
+  )
 }

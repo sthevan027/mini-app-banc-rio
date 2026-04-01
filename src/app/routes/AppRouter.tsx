@@ -1,25 +1,55 @@
-import { Navigate, Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom'
-import { AuthPage } from '../../features/auth/pages/AuthPage'
-import { DashboardPage } from '../../features/dashboard/pages/DashboardPage'
-import { useAuthStore } from '../../store/auth-store'
+import {
+  Navigate,
+  Outlet,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom";
+import { AuthPage } from "../../features/auth/pages/AuthPage";
+import { DashboardPage } from "../../features/dashboard/pages/DashboardPage";
+import { useAuthStore } from "../../store/auth-store";
 
 function ProtectedLayout() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const user = useAuthStore((state) => state.user);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
+  if (!hasHydrated) {
+    return null;
   }
 
-  return <Outlet />
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
+}
+
+function PublicOnlyLayout() {
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const user = useAuthStore((state) => state.user);
+
+  if (!hasHydrated) {
+    return null;
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
 }
 
 const router = createBrowserRouter([
   {
-    path: '/login',
-    element: <AuthPage />,
+    element: <PublicOnlyLayout />,
+    children: [
+      {
+        path: "/login",
+        element: <AuthPage />,
+      },
+    ],
   },
   {
-    path: '/',
+    path: "/",
     element: <ProtectedLayout />,
     children: [
       {
@@ -29,11 +59,11 @@ const router = createBrowserRouter([
     ],
   },
   {
-    path: '*',
+    path: "*",
     element: <Navigate to="/" replace />,
   },
-])
+]);
 
 export function AppRouter() {
-  return <RouterProvider router={router} />
+  return <RouterProvider router={router} />;
 }

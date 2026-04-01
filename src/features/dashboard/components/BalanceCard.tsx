@@ -1,5 +1,5 @@
+﻿import { SectionCard } from '../../../components/SectionCard'
 import { formatCurrency } from '../../../utils/currency'
-import { SectionCard } from '../../../components/SectionCard'
 
 type BalanceCardProps = {
   balance: number
@@ -24,8 +24,8 @@ export function BalanceCard({ balance }: BalanceCardProps) {
             {formatCurrency(balance)}
           </p>
           <p className="mt-3 max-w-md text-sm leading-6 text-slate-200/85">
-            Transferencias aprovadas atualizam o store global imediatamente e
-            depois sincronizam o cache da query.
+            Transferencias aprovadas atualizam o cache remoto imediatamente,
+            mantendo uma unica fonte de verdade para a conta.
           </p>
         </div>
       </div>

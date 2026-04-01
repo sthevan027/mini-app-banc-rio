@@ -1,27 +1,26 @@
-import type { ReactNode } from "react";
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { FeedbackBanner } from "../../../components/FeedbackBanner";
-import { SectionCard } from "../../../components/SectionCard";
-import { transferFunds } from "../../../services/api";
-import { useBankStore } from "../../../store/bank-store";
-import { formatCurrency } from "../../../utils/currency";
+﻿import type { ReactNode } from 'react'
+import { useState } from 'react'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { FeedbackBanner } from '../../../components/FeedbackBanner'
+import { SectionCard } from '../../../components/SectionCard'
+import { formatCurrency } from '../../../utils/currency'
+import { useAccountOverviewQuery } from '../../account/hooks/useAccountOverviewQuery'
+import { useTransferMutation } from '../hooks/useTransferMutation'
 import type {
   TransferFormInput,
   TransferFormValues,
-} from "../schemas/transferSchema";
-import { transferSchema } from "../schemas/transferSchema";
+} from '../schemas/transferSchema'
+import { transferSchema } from '../schemas/transferSchema'
 
 export function TransferForm() {
   const [feedback, setFeedback] = useState<null | {
-    kind: "success" | "error";
-    message: string;
-  }>(null);
-  const balance = useBankStore((state) => state.balance);
-  const applyTransfer = useBankStore((state) => state.applyTransfer);
-  const queryClient = useQueryClient();
+    kind: 'success' | 'error'
+    message: string
+  }>(null)
+  const { data } = useAccountOverviewQuery()
+  const balance = data?.balance ?? 0
+  const transferMutation = useTransferMutation()
 
   const {
     register,
@@ -31,43 +30,38 @@ export function TransferForm() {
   } = useForm<TransferFormInput, undefined, TransferFormValues>({
     resolver: zodResolver(transferSchema),
     defaultValues: {
-      to: "",
+      to: '',
       amount: undefined,
-      description: "",
+      description: '',
     },
-  });
+  })
 
-  const transferMutation = useMutation({
-    mutationFn: transferFunds,
-    onSuccess: (result) => {
-      applyTransfer(result);
+  const onSubmit = handleSubmit(async (values) => {
+    setFeedback(null)
+
+    try {
+      const result = await transferMutation.mutateAsync(values)
+
       setFeedback({
-        kind: "success",
+        kind: 'success',
         message: `Transferencia de ${formatCurrency(result.transaction.amount)} enviada para ${result.transaction.counterparty}.`,
-      });
-      reset();
-      void queryClient.invalidateQueries({ queryKey: ["account-overview"] });
-    },
-    onError: (error) => {
+      })
+      reset()
+    } catch (error) {
       setFeedback({
-        kind: "error",
+        kind: 'error',
         message:
           error instanceof Error
             ? error.message
-            : "Nao foi possivel concluir a transferencia.",
-      });
-    },
-  });
-
-  const onSubmit = handleSubmit((values: TransferFormValues) => {
-    setFeedback(null);
-    transferMutation.mutate(values);
-  });
+            : 'Nao foi possivel concluir a transferencia.',
+      })
+    }
+  })
 
   return (
     <SectionCard
       title="Nova transferencia"
-      description="Validacao de formulario com React Hook Form + Zod e atualizacao do estado global."
+      description="Validacao de formulario com React Hook Form + Zod e atualizacao do cache remoto."
     >
       <div className="mb-5 rounded-3xl border border-white/10 bg-white/6 p-4">
         <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
@@ -81,7 +75,7 @@ export function TransferForm() {
       <form className="space-y-4" onSubmit={onSubmit}>
         <Field label="Destinatario" error={errors.to?.message}>
           <input
-            {...register("to")}
+            {...register('to')}
             placeholder="Ex.: Marina Costa"
             className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
           />
@@ -89,7 +83,7 @@ export function TransferForm() {
 
         <Field label="Valor" error={errors.amount?.message}>
           <input
-            {...register("amount")}
+            {...register('amount')}
             type="number"
             min="0"
             step="0.01"
@@ -100,7 +94,7 @@ export function TransferForm() {
 
         <Field label="Descricao" error={errors.description?.message}>
           <input
-            {...register("description")}
+            {...register('description')}
             placeholder="Motivo da transferencia"
             className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
           />
@@ -115,18 +109,18 @@ export function TransferForm() {
           disabled={transferMutation.isPending}
           className="w-full rounded-full bg-orange-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-orange-200 disabled:cursor-wait disabled:opacity-70"
         >
-          {transferMutation.isPending ? "Processando..." : "Transferir agora"}
+          {transferMutation.isPending ? 'Processando...' : 'Transferir agora'}
         </button>
       </form>
     </SectionCard>
-  );
+  )
 }
 
 type FieldProps = {
-  label: string;
-  error?: string;
-  children: ReactNode;
-};
+  label: string
+  error?: string
+  children: ReactNode
+}
 
 function Field({ label, error, children }: FieldProps) {
   return (
@@ -139,5 +133,5 @@ function Field({ label, error, children }: FieldProps) {
         <span className="mt-2 block text-sm text-rose-200">{error}</span>
       ) : null}
     </label>
-  );
+  )
 }

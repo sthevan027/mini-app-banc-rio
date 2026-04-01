@@ -1,28 +1,27 @@
-import { useMutation } from "@tanstack/react-query";
-import type { FormEvent } from "react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { loginRequest } from "../../../services/api";
-import { useAuthStore } from "../../../store/auth-store";
+﻿import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { FeedbackBanner } from '../../../components/FeedbackBanner'
+import { useLoginMutation } from '../hooks/useLoginMutation'
+import type { LoginFormInput, LoginFormValues } from '../schemas/loginSchema'
+import { loginSchema } from '../schemas/loginSchema'
 
 export function LoginForm() {
-  const [name, setName] = useState("Sthevan");
-  const [email, setEmail] = useState("sthevan.dev@bancorio.test");
-  const login = useAuthStore((state) => state.login);
-  const navigate = useNavigate();
-
-  const loginMutation = useMutation({
-    mutationFn: loginRequest,
-    onSuccess: (user) => {
-      login(user);
-      void navigate("/");
+  const loginMutation = useLoginMutation()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormInput, undefined, LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      name: 'Sthevan',
+      email: 'sthevan.dev@bancorio.test',
     },
-  });
+  })
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    loginMutation.mutate({ name, email });
-  }
+  const onSubmit = handleSubmit((values) => {
+    loginMutation.mutate(values)
+  })
 
   return (
     <section className="flex items-center rounded-[36px] border border-white/10 bg-slate-950/70 p-8 shadow-2xl backdrop-blur sm:p-10">
@@ -32,22 +31,23 @@ export function LoginForm() {
         </p>
         <h2 className="mt-3 text-3xl font-bold text-white">Entrar na conta</h2>
         <p className="mt-3 text-sm leading-6 text-slate-300">
-          Use qualquer nome e email válidos. O login é mockado, mas a sessão é
+          Use qualquer nome e email validos. O login e mockado, mas a sessao e
           persistida no navegador.
         </p>
 
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-5" onSubmit={onSubmit}>
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-200">
               Nome
             </span>
             <input
-              required
-              value={name}
-              onChange={(event) => setName(event.target.value)}
+              {...register('name')}
               className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
               placeholder="Seu nome"
             />
+            {errors.name ? (
+              <span className="mt-2 block text-sm text-rose-200">{errors.name.message}</span>
+            ) : null}
           </label>
 
           <label className="block">
@@ -55,19 +55,25 @@ export function LoginForm() {
               Email
             </span>
             <input
-              required
+              {...register('email')}
               type="email"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
               placeholder="voce@email.com"
             />
+            {errors.email ? (
+              <span className="mt-2 block text-sm text-rose-200">{errors.email.message}</span>
+            ) : null}
           </label>
 
           {loginMutation.isError ? (
-            <p className="rounded-2xl border border-rose-400/30 bg-rose-400/10 px-4 py-3 text-sm text-rose-100">
-              Falha ao iniciar a sessão. Tente novamente.
-            </p>
+            <FeedbackBanner
+              kind="error"
+              message={
+                loginMutation.error instanceof Error
+                  ? loginMutation.error.message
+                  : 'Falha ao iniciar a sessao. Tente novamente.'
+              }
+            />
           ) : null}
 
           <button
@@ -75,10 +81,10 @@ export function LoginForm() {
             disabled={loginMutation.isPending}
             className="w-full rounded-full bg-cyan-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-wait disabled:opacity-70"
           >
-            {loginMutation.isPending ? "Entrando..." : "Acessar dashboard"}
+            {loginMutation.isPending ? 'Entrando...' : 'Acessar dashboard'}
           </button>
         </form>
       </div>
     </section>
-  );
+  )
 }

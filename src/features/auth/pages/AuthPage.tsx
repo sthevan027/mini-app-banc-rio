@@ -1,4 +1,4 @@
-import { LoginForm } from '../components/LoginForm'
+﻿import { LoginForm } from '../components/LoginForm'
 
 export function AuthPage() {
   return (
@@ -9,22 +9,22 @@ export function AuthPage() {
           <div className="relative flex h-full flex-col justify-between gap-8">
             <div>
               <p className="text-sm uppercase tracking-[0.4em] text-cyan-300/75">
-                Mini App Bancário
+                Mini App Bancario
               </p>
               <h1 className="mt-4 max-w-xl text-4xl font-bold tracking-tight text-white sm:text-5xl">
-                Controle saldo, acompanhe transações e simule transferências com
+                Controle saldo, acompanhe transacoes e simule transferencias com
                 feedback imediato.
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-                Fluxo pensado para o desafio: autenticação mockada, dashboard com
-                dados remotos simulados, validação com Zod e estado compartilhado
-                com Zustand.
+                Fluxo pensado para o desafio: autenticacao mockada, dashboard com
+                dados remotos simulados, validacao com Zod e cache remoto com
+                React Query.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <Metric label="Stack" value="React + TS" />
-              <Metric label="Estado" value="Zustand" />
+              <Metric label="Estado" value="Auth local" />
               <Metric label="Requests" value="React Query" />
             </div>
           </div>
