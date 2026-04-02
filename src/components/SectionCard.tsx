@@ -1,11 +1,12 @@
-import type { PropsWithChildren } from "react";
-import { clsx } from "clsx";
+import type { PropsWithChildren } from 'react'
+import { useId } from 'react'
+import { clsx } from 'clsx'
 
 type SectionCardProps = PropsWithChildren<{
-  className?: string;
-  title: string;
-  description: string;
-}>;
+  className?: string
+  title: string
+  description: string
+}>
 
 export function SectionCard({
   title,
@@ -13,18 +14,27 @@ export function SectionCard({
   className,
   children,
 }: SectionCardProps) {
+  const titleId = useId()
+  const descId = useId()
+
   return (
     <section
       className={clsx(
-        "rounded-[28px] border border-white/10 bg-slate-950/45 p-6 shadow-xl backdrop-blur",
+        'rounded-[var(--app-radius-card)] border border-[var(--app-border-subtle)] bg-[var(--app-surface-elevated)] p-[var(--app-space-section)] shadow-xl backdrop-blur',
         className,
       )}
+      aria-labelledby={titleId}
+      aria-describedby={descId}
     >
       <header className="mb-5">
-        <h2 className="text-xl font-semibold text-white">{title}</h2>
-        <p className="mt-1 text-sm text-slate-300">{description}</p>
+        <h2 id={titleId} className="text-xl font-semibold text-[var(--app-text-primary)]">
+          {title}
+        </h2>
+        <p id={descId} className="mt-1 text-sm text-[var(--app-text-secondary)]">
+          {description}
+        </p>
       </header>
       {children}
     </section>
-  );
+  )
 }

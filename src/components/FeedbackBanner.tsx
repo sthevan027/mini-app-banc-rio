@@ -9,6 +9,7 @@ export function FeedbackBanner({ kind, message }: FeedbackBannerProps) {
   return (
     <div
       role="status"
+      aria-live={kind === 'error' ? 'assertive' : 'polite'}
       className={clsx(
         'rounded-2xl border px-4 py-3 text-sm',
         kind === 'success'
