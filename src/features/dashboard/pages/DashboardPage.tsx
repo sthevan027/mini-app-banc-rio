@@ -1,20 +1,59 @@
-﻿import { AppShell } from '../../../components/AppShell'
+﻿import { lazy, Suspense, useEffect, useRef } from 'react'
+import { AppShell } from '../../../components/AppShell'
 import { FeedbackBanner } from '../../../components/FeedbackBanner'
 import { SectionCard } from '../../../components/SectionCard'
+import {
+  markDashboardDataReady,
+  reportUiError,
+  startDashboardLoadMark,
+} from '../../../utils/observability'
 import { useAccountOverviewQuery } from '../../account/hooks/useAccountOverviewQuery'
-import { TransferForm } from '../../transfer/components/TransferForm'
 import { BalanceCard } from '../components/BalanceCard'
+import { SummaryMetricCard } from '../components/SummaryMetricCard'
 import { TransactionList } from '../components/TransactionList'
+
+const TransferForm = lazy(() =>
+  import('../../transfer/components/TransferForm').then((m) => ({ default: m.TransferForm })),
+)
 
 export function DashboardPage() {
   const overviewQuery = useAccountOverviewQuery()
   const balance = overviewQuery.data?.balance ?? 0
   const transactions = overviewQuery.data?.transactions ?? []
+  const hasMarkedReady = useRef(false)
+
+  useEffect(() => {
+    startDashboardLoadMark()
+  }, [])
+
+  useEffect(() => {
+    if (overviewQuery.isError) {
+      reportUiError(new Error('Falha ao carregar visao geral da conta'), 'dashboard_overview')
+    }
+  }, [overviewQuery.isError])
+
+  useEffect(() => {
+    if (
+      overviewQuery.isLoading ||
+      overviewQuery.isError ||
+      !overviewQuery.data ||
+      hasMarkedReady.current
+    ) {
+      return
+    }
+    hasMarkedReady.current = true
+    markDashboardDataReady()
+  }, [overviewQuery.isLoading, overviewQuery.isError, overviewQuery.data])
 
   return (
     <AppShell balance={balance}>
       {overviewQuery.isLoading ? (
-        <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <div
+          className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <span className="sr-only">Carregando dados da conta</span>
           <SkeletonCard />
           <SkeletonCard />
         </div>
@@ -37,16 +76,18 @@ export function DashboardPage() {
               description="Informacoes sinteticas para deixar claro o estado atual da conta."
             >
               <div className="grid gap-4 sm:grid-cols-3">
-                <SummaryMetric
+                <SummaryMetricCard
                   label="Transacoes"
                   value={String(transactions.length).padStart(2, '0')}
                 />
-                <SummaryMetric label="Status" value="Conta ativa" />
-                <SummaryMetric label="Protecao" value="Sessao local" />
+                <SummaryMetricCard label="Status" value="Conta ativa" />
+                <SummaryMetricCard label="Protecao" value="Sessao local" />
               </div>
             </SectionCard>
 
-            <TransferForm />
+            <Suspense fallback={<TransferFormSkeleton />}>
+              <TransferForm />
+            </Suspense>
           </div>
 
           <TransactionList transactions={transactions} />
@@ -56,19 +97,21 @@ export function DashboardPage() {
   )
 }
 
-function SummaryMetric({ label, value }: { label: string; value: string }) {
+function SkeletonCard() {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/6 p-4">
-      <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
-        {label}
-      </p>
-      <p className="mt-2 text-lg font-semibold text-white">{value}</p>
-    </div>
+    <div
+      className="h-80 animate-pulse rounded-[var(--app-radius-card)] border border-[var(--app-border-subtle)] bg-[var(--app-surface-muted)]"
+      aria-hidden
+    />
   )
 }
 
-function SkeletonCard() {
+function TransferFormSkeleton() {
   return (
-    <div className="h-80 animate-pulse rounded-[28px] border border-white/10 bg-white/6" />
+    <div
+      className="min-h-[22rem] animate-pulse rounded-[var(--app-radius-card)] border border-[var(--app-border-subtle)] bg-[var(--app-surface-muted)]"
+      role="status"
+      aria-label="Carregando formulario de transferencia"
+    />
   )
 }
