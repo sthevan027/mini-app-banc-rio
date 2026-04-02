@@ -8,7 +8,8 @@
     "build": "node scripts/run-tool.mjs tsc -b && node scripts/run-tool.mjs vite build",
     "lint": "node scripts/run-tool.mjs eslint .",
     "preview": "vite preview",
-    "test": "node scripts/run-tool.mjs vitest run"
+    "test": "node scripts/run-tool.mjs vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
