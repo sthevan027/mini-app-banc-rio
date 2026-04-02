@@ -1,5 +1,5 @@
-﻿import type { ReactNode } from 'react'
-import { useState } from 'react'
+import type { InputHTMLAttributes, ReactElement, ReactNode } from 'react'
+import { cloneElement, isValidElement, useId, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { FeedbackBanner } from '../../../components/FeedbackBanner'
@@ -13,7 +13,13 @@ import type {
 } from '../schemas/transferSchema'
 import { transferSchema } from '../schemas/transferSchema'
 
+const inputFocusClass =
+  'w-full rounded-[var(--app-radius-control)] border border-[var(--app-border-subtle)] bg-[var(--app-surface-muted)] px-4 py-3 text-[var(--app-text-primary)] outline-none transition placeholder:text-[var(--app-text-muted)] focus-visible:border-cyan-300/50 focus-visible:ring-2 focus-visible:ring-[var(--app-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-focus-ring-offset)]'
+
 export function TransferForm() {
+  const destinatarioId = useId()
+  const valorId = useId()
+  const descricaoId = useId()
   const [feedback, setFeedback] = useState<null | {
     kind: 'success' | 'error'
     message: string
@@ -63,40 +69,43 @@ export function TransferForm() {
       title="Nova transferencia"
       description="Validacao de formulario com React Hook Form + Zod e atualizacao do cache remoto."
     >
-      <div className="mb-5 rounded-3xl border border-white/10 bg-white/6 p-4">
-        <p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+      <div className="mb-5 rounded-[var(--app-radius-card)] border border-[var(--app-border-subtle)] bg-[var(--app-surface-muted)] p-4">
+        <p className="text-xs uppercase tracking-[0.25em] text-[var(--app-text-label)]">
           Limite operacional imediato
         </p>
-        <p className="mt-2 text-2xl font-semibold text-white">
+        <p className="mt-2 text-2xl font-semibold text-[var(--app-text-primary)]">
           {formatCurrency(balance)}
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={onSubmit}>
-        <Field label="Destinatario" error={errors.to?.message}>
+      <form className="space-y-4" onSubmit={onSubmit} noValidate>
+        <Field label="Destinatario" fieldId={destinatarioId} error={errors.to?.message}>
           <input
             {...register('to')}
             placeholder="Ex.: Marina Costa"
-            className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
+            autoComplete="name"
+            className={inputFocusClass}
           />
         </Field>
 
-        <Field label="Valor" error={errors.amount?.message}>
+        <Field label="Valor" fieldId={valorId} error={errors.amount?.message}>
           <input
             {...register('amount')}
             type="number"
             min="0"
             step="0.01"
+            inputMode="decimal"
             placeholder="0,00"
-            className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
+            className={inputFocusClass}
           />
         </Field>
 
-        <Field label="Descricao" error={errors.description?.message}>
+        <Field label="Descricao" fieldId={descricaoId} error={errors.description?.message}>
           <input
             {...register('description')}
             placeholder="Motivo da transferencia"
-            className="w-full rounded-2xl border border-white/10 bg-white/6 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300/50"
+            autoComplete="off"
+            className={inputFocusClass}
           />
         </Field>
 
@@ -107,7 +116,7 @@ export function TransferForm() {
         <button
           type="submit"
           disabled={transferMutation.isPending}
-          className="w-full rounded-full bg-orange-300 px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-orange-200 disabled:cursor-wait disabled:opacity-70"
+          className="w-full rounded-[var(--app-radius-pill)] bg-[var(--app-accent-orange-strong)] px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-[var(--app-accent-orange)] disabled:cursor-wait disabled:opacity-70"
         >
           {transferMutation.isPending ? 'Processando...' : 'Transferir agora'}
         </button>
@@ -118,20 +127,36 @@ export function TransferForm() {
 
 type FieldProps = {
   label: string
+  fieldId: string
   error?: string
   children: ReactNode
 }
 
-function Field({ label, error, children }: FieldProps) {
+function Field({ label, error, fieldId, children }: FieldProps) {
+  const errorId = `${fieldId}-error`
+
+  const control = isValidElement(children)
+    ? cloneElement(children as ReactElement<InputHTMLAttributes<HTMLInputElement>>, {
+        id: fieldId,
+        'aria-invalid': error ? true : undefined,
+        'aria-describedby': error ? errorId : undefined,
+      })
+    : children
+
   return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-medium text-slate-200">
+    <div className="block">
+      <label
+        htmlFor={fieldId}
+        className="mb-2 block text-sm font-medium text-[var(--app-text-secondary)]"
+      >
         {label}
-      </span>
-      {children}
+      </label>
+      {control}
       {error ? (
-        <span className="mt-2 block text-sm text-rose-200">{error}</span>
+        <span id={errorId} className="mt-2 block text-sm text-rose-200" role="alert">
+          {error}
+        </span>
       ) : null}
-    </label>
+    </div>
   )
 }
