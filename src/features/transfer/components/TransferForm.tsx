@@ -1,7 +1,8 @@
-import type { InputHTMLAttributes, ReactElement, ReactNode } from 'react'
-import { cloneElement, isValidElement, useId, useState } from 'react'
+import type { InputHTMLAttributes } from 'react'
+import { useId, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
+import { clsx } from 'clsx'
 import { FeedbackBanner } from '../../../components/FeedbackBanner'
 import { SectionCard } from '../../../components/SectionCard'
 import { formatCurrency } from '../../../utils/currency'
@@ -54,13 +55,11 @@ export function TransferForm() {
       })
       reset()
     } catch (error) {
-      setFeedback({
-        kind: 'error',
-        message:
-          error instanceof Error
-            ? error.message
-            : 'Nao foi possivel concluir a transferencia.',
-      })
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Nao foi possivel concluir a transferencia.'
+      setFeedback({ kind: 'error', message })
     }
   })
 
@@ -79,35 +78,35 @@ export function TransferForm() {
       </div>
 
       <form className="space-y-4" onSubmit={onSubmit} noValidate>
-        <Field label="Destinatario" fieldId={destinatarioId} error={errors.to?.message}>
-          <input
-            {...register('to')}
-            placeholder="Ex.: Marina Costa"
-            autoComplete="name"
-            className={inputFocusClass}
-          />
-        </Field>
+        <Field
+          label="Destinatario"
+          fieldId={destinatarioId}
+          error={errors.to?.message}
+          placeholder="Ex.: Marina Costa"
+          autoComplete="name"
+          {...register('to')}
+        />
 
-        <Field label="Valor" fieldId={valorId} error={errors.amount?.message}>
-          <input
-            {...register('amount')}
-            type="number"
-            min="0"
-            step="0.01"
-            inputMode="decimal"
-            placeholder="0,00"
-            className={inputFocusClass}
-          />
-        </Field>
+        <Field
+          label="Valor"
+          fieldId={valorId}
+          error={errors.amount?.message}
+          type="number"
+          min={0}
+          step="0.01"
+          inputMode="decimal"
+          placeholder="0,00"
+          {...register('amount')}
+        />
 
-        <Field label="Descricao" fieldId={descricaoId} error={errors.description?.message}>
-          <input
-            {...register('description')}
-            placeholder="Motivo da transferencia"
-            autoComplete="off"
-            className={inputFocusClass}
-          />
-        </Field>
+        <Field
+          label="Descricao"
+          fieldId={descricaoId}
+          error={errors.description?.message}
+          placeholder="Motivo da transferencia"
+          autoComplete="off"
+          {...register('description')}
+        />
 
         {feedback ? (
           <FeedbackBanner kind={feedback.kind} message={feedback.message} />
@@ -129,19 +128,10 @@ type FieldProps = {
   label: string
   fieldId: string
   error?: string
-  children: ReactNode
-}
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'id'>
 
-function Field({ label, error, fieldId, children }: FieldProps) {
+function Field({ label, fieldId, error, className, ...inputProps }: FieldProps) {
   const errorId = `${fieldId}-error`
-
-  const control = isValidElement(children)
-    ? cloneElement(children as ReactElement<InputHTMLAttributes<HTMLInputElement>>, {
-        id: fieldId,
-        'aria-invalid': error ? true : undefined,
-        'aria-describedby': error ? errorId : undefined,
-      })
-    : children
 
   return (
     <div className="block">
@@ -151,7 +141,13 @@ function Field({ label, error, fieldId, children }: FieldProps) {
       >
         {label}
       </label>
-      {control}
+      <input
+        {...inputProps}
+        id={fieldId}
+        className={clsx(inputFocusClass, className)}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? errorId : undefined}
+      />
       {error ? (
         <span id={errorId} className="mt-2 block text-sm text-rose-200" role="alert">
           {error}
