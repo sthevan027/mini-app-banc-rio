@@ -1,0 +1,48 @@
+/**
+ * Design tokens — cores, raios, espaçamento e foco.
+ * Consumidos via var() no CSS e, onde útil, espelhados no @theme do Tailwind.
+ */
+:root {
+  /* Superfícies */
+  --app-bg-gradient-start: #07111f;
+  --app-bg-gradient-mid: #0d1c31;
+  --app-bg-gradient-end: #13263f;
+  --app-surface-elevated: rgb(2 6 23 / 0.45);
+  --app-surface-muted: rgb(255 255 255 / 0.06);
+  --app-border-subtle: rgb(255 255 255 / 0.12);
+
+  /* Texto (contraste elevado para fundo escuro) */
+  --app-text-primary: #f8fafc;
+  --app-text-secondary: #cbd5e1;
+  --app-text-muted: #94a3b8;
+  --app-text-label: #a5b4c4;
+
+  /* Acentos */
+  --app-accent-cyan: #5eead4;
+  --app-accent-cyan-muted: rgb(94 234 212 / 0.75);
+  --app-accent-orange: #fdba74;
+  --app-accent-orange-strong: #fb923c;
+  --app-credit: #6ee7b7;
+  --app-debit: #fed7aa;
+
+  /* Foco visível (teclado) */
+  --app-focus-ring: #2dd4bf;
+  --app-focus-ring-offset: #0f172a;
+
+  /* Layout */
+  --app-radius-card: 1.75rem;
+  --app-radius-control: 1rem;
+  --app-radius-pill: 9999px;
+  --app-space-section: 1.5rem;
+  --app-space-card-inner: 1.25rem;
+  --app-max-content: 72rem;
+
+  /* Sombras */
+  --app-shadow-card: 0 25px 50px -12px rgb(0 0 0 / 0.45);
+}
+
+@theme inline {
+  --radius-app-card: var(--app-radius-card);
+  --color-app-text-muted: var(--app-text-muted);
+  --color-app-focus-ring: var(--app-focus-ring);
+}
