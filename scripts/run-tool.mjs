@@ -62,10 +62,33 @@ try {
       // Node-running JS script
       result = spawnSync(process.execPath, [binPath, ...args], spawnOpts);
     } else {
-      // Unknown extension (could be a unix shell script installed on Windows). Fall back to cmd.exe /c "<path>"
+      // Unknown extension (could be a unix shell script installed on Windows). Fall back to cmd.exe /c <path>
       const cmdExe = process.env.comspec || "cmd.exe";
-      // Wrap path in quotes so spaces are handled correctly by cmd.exe
-      result = spawnSync(cmdExe, ["/c", `"${binPath}"`, ...args], spawnOpts);
+      // Pass the path unquoted as a separate argv entry — spawnSync will pass it correctly to cmd.exe
+      result = spawnSync(cmdExe, ["/c", binPath, ...args], spawnOpts);
+    }
+
+    // If the direct execution failed on Windows, try pnpm exec as a reliable fallback.
+    // This handles cases where invoking the bin path directly fails due to shell/path peculiarities.
+    if (result && typeof result.status === "number" && result.status !== 0) {
+      console.warn(
+        `[fallback] execução direta de ${command} falhou (status=${result.status}), tentando 'pnpm exec -- ${command}'...`,
+      );
+      const pnpmCmd = process.platform === "win32" ? "pnpm" : "pnpm";
+      try {
+        result = spawnSync(
+          pnpmCmd,
+          ["exec", "--", command, ...args],
+          spawnOpts,
+        );
+      } catch (fallbackErr) {
+        console.error(
+          `[error] fallback 'pnpm exec' falhou:`,
+          fallbackErr && fallbackErr.message
+            ? fallbackErr.message
+            : fallbackErr,
+        );
+      }
     }
   } else {
     // POSIX-like systems
