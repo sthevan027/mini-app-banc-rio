@@ -12,6 +12,8 @@ on:
       - "vite.config.ts"
       - "eslint.config.js"
       - "index.html"
+      - "e2e/**"
+      - "playwright.config.ts"
       - ".github/workflows/ci.yml"
       - "GitHub/WorkFlows/ci.yml"
   pull_request:
@@ -25,6 +27,8 @@ on:
       - "vite.config.ts"
       - "eslint.config.js"
       - "index.html"
+      - "e2e/**"
+      - "playwright.config.ts"
       - ".github/workflows/ci.yml"
       - "GitHub/WorkFlows/ci.yml"
 
