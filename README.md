@@ -5,17 +5,24 @@ Mini app bancario frontend criado para o desafio tecnico com foco em organizacao
 ## Como rodar
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 ## Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run lint
-npm run test
+pnpm dev
+pnpm build
+pnpm lint
+pnpm test
+pnpm test:e2e
+```
+
+O primeiro uso dos testes E2E exige instalar o navegador do Playwright:
+
+```bash
+pnpm exec playwright install chromium
 ```
 
 ## Stack
@@ -26,7 +33,8 @@ npm run test
 - Zustand para sessao e estado global de conta
 - React Query para requests mockados e sincronizacao do cache
 - React Hook Form + Zod para validacao da transferencia
-- Vitest + Testing Library para teste de fluxo
+- Vitest + Testing Library para testes de componente
+- Playwright para E2E (dashboard, transferencia, logout)
 
 ## Estrutura
 
@@ -44,6 +52,8 @@ src/
   store/
   test/
   utils/
+  styles/
+    tokens.css
 ```
 
 ## Fluxos implementados
@@ -74,7 +84,8 @@ O teste cobre o fluxo principal de transferencia:
 Execute com:
 
 ```bash
-npm run test
+pnpm test
+pnpm test:e2e
 ```
 
 ## Seguranca
