@@ -115,7 +115,15 @@ export function TransferForm() {
         <button
           type="submit"
           disabled={transferMutation.isPending}
-          className="w-full rounded-(--app-radius-pill) bg-(--app-accent-orange-strong px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-(--app-accent-orange)] disabled:cursor-wait disabled:opacity-70"
+          className={clsx(
+            "w-full rounded-(--app-radius-pill) px-5 py-3.5 text-sm font-bold tracking-wide",
+            "bg-(--app-accent-orange-strong) text-slate-950 shadow-[0_4px_18px_rgb(251_146_60/0.4)]",
+            "transition-[transform,box-shadow,background-color,opacity] duration-200",
+            "hover:bg-(--app-accent-orange) hover:shadow-[0_6px_24px_rgb(251_146_60/0.5)]",
+            "active:scale-[0.98] active:shadow-[0_2px_10px_rgb(251_146_60/0.35)]",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--app-focus-ring) focus-visible:ring-offset-2 focus-visible:ring-offset-(--app-focus-ring-offset)",
+            "disabled:cursor-wait disabled:opacity-60 disabled:active:scale-100",
+          )}
         >
           {transferMutation.isPending ? "Processando..." : "Transferir agora"}
         </button>
